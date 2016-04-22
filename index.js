@@ -2,56 +2,51 @@ var t,
 TwitchList = {
 	settings: {
 		twitchList: document.getElementById("twitch-list"),
-		twitchUsers: ['freecodecamp', 'geekandsundry', 'brunofin', 'comster404', 'femfreq', 'automaticjak', 'feliciaday', 'fatbosstv', 'terakilobyte'],
-		currentList: []
+		twitchUsers: {
+			'freecodecamp': {},
+			'geekandsundry': {},
+			'brunofin': {},
+			'comster404': {},
+			'femfreq': {},
+			'automaticjak': {},
+			'feliciaday': {},
+			'fatbosstv': {},
+			'terakilobyte': {}
+		}
 	},
 
 	init: function() {
 		t = TwitchList.settings;
 		TwitchList.bindUIActions();
-		TwitchList.createList();
+		TwitchList.createList(t.twitchUsers);
 	},
 
 	bindUIActions: function() {
 
 	},
 
-	createList: function() {
-		for (user in t.twitchUsers) {
-			var twitchUser = t.twitchUsers[user];
-			var index = t.currentList.indexOf(t.twitchUsers[user]);
-
-			if (index > -1) {
-				TwitchList.requestData(twitchUser, 'update');
-			} else {
-				TwitchList.requestData(twitchUser, 'append');
-			}
-			
+	createList: function(userList) {
+		for (user in userList) {
+			TwitchList.requestData(user);
 		}
 		
 	},
 
-	requestData: function(user, process) {
+	requestData: function(user) {
 		var request = new XMLHttpRequest();
-		request.open('GET', 'https://api.twitch.tv/kraken/channels/' + user, true);
+		request.open('GET', 'https://api.twitch.tv/kraken/streams/' + user, true);
 		request.onload = function() {
 		  if (request.status >= 200 && request.status < 400) {
 		    // Success!
 		   	var data = JSON.parse(request.responseText);
-		   	if (process === 'append') {
-		   		TwitchList.appendData(data, user);
-		   		console.log(data);
-		   	} else if (process === 'update') {
-		   		TwitchList.updateData(data);
-		   	}
-		   	
-		  } else {
-		  	if (process === 'append') {
-		   		TwitchList.appendData("404", user);
-		   	} else if (process === 'update') {
-		   		TwitchList.updateData("404");
-		   	}
-
+		   	TwitchList.addStreamInfo(data, user);
+		} else {
+				var twitchUser = t.twitchUsers[user];
+		   		twitchUser.status = "This username does not exist.";
+		   		twitchUser.logo = "img/dead_glitch.png";
+				twitchUser.display_name = user;
+				twitchUser.url = "http://twitch.tv";
+		   		TwitchList.appendData(twitchUser);
 		  }
 		};
 
@@ -63,49 +58,67 @@ TwitchList = {
 		
 	},
 
-	appendData: function(data, user) {
-		t.currentList.push(user);
-		var logo;
-		var status;
-		var url;
+	requestChannelData: function(user) {
+		var request = new XMLHttpRequest();
+		request.open('GET', 'https://api.twitch.tv/kraken/channels/' + user, true);
+		request.onload = function() {
+		  if (request.status >= 200 && request.status < 400) {
+		    // Success!
+		   	var data = JSON.parse(request.responseText);
+		   	TwitchList.addChannelInfo(data, user);
+		  }
+		};
 
-		if (data.logo !== null && data.logo !== undefined) {
-			logo = data.logo;
-		} else if (data.logo === undefined) {
-			logo = "img/dead_glitch.png";
-		} else {
-			logo = "img/twitch.png";
-		}
+		request.onerror = function() {
+		  // There was a connection error of some sort
+		};
 
-		if (data.status !== null && data.status !== undefined) {
-			status = data.status;
-		} else {
-			status = "Currently not streaming.";
-		}
-
-		if (data.url !== null && data.url !== undefined) {
-			url = data.url;
-		} else {
-			url = "http://twitch.tv";
-		}
-
-		if (data !== "404") {
-			var item = document.createElement("li");
-			item.innerHTML = "<div><img class='user-img' src=" + logo + "><h2><a href=" + url + ">" + data.display_name + "</h2></a><p class='status'>" + status + "</p></div>";
-			item.className += "twitch-user";
-			t.twitchList.appendChild(item);
-		} else {
-			var item = document.createElement("li");
-			item.innerHTML = "<div><img class='user-img' src=" + logo + "><h2>" + user + "</h2></a><p>This user does not exist.</p></div>";
-			item.className += "twitch-user";
-			t.twitchList.appendChild(item);
-		}
+		request.send();
 		
-
 	},
 
-	updateData: function(data) {
-		console.log(data, 'update');
+	addStreamInfo: function(data, user) {
+		var twitchUser = t.twitchUsers[user];
+		if (data.stream === null) {
+			twitchUser.status = "Not currently streaming...";
+			TwitchList.requestChannelData(user);
+		} else {
+			twitchUser.logo = TwitchList.doesLogoExist(data.stream.channel.logo);
+			twitchUser.display_name = data.stream.channel.display_name;
+			twitchUser.url = data.stream.channel.url;
+			twitchUser.status = data.stream.channel.status;
+			TwitchList.appendData(twitchUser);
+		}
+	},
+
+	addChannelInfo: function(data, user) {
+		var twitchUser = t.twitchUsers[user];
+		twitchUser.logo = TwitchList.doesLogoExist(data.logo);
+		twitchUser.display_name = data.display_name;
+		twitchUser.url = data.url;
+
+
+		TwitchList.appendData(twitchUser);
+	},
+
+	doesLogoExist: function(logo) {
+		var twitchLogo;
+		if (logo !== null) {
+			twitchLogo = logo;
+		} else {
+			twitchLogo = "img/twitch.png";
+		}
+
+		return twitchLogo;
+	},
+
+	appendData: function(user) {
+
+		var item = document.createElement('li');
+		item.innerHTML = "<div><img class='user-img' src=" + user.logo + "><h2><a href=" + user.url + ">" + user.display_name + "</h2></a><p class='status'>" + user.status + "</p></div>";
+		item.className += "twitch-user";
+		t.twitchList.appendChild(item);
+
 	}
 
 
