@@ -3,11 +3,31 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Twitch.tv Status</title>
+	<link href='https://fonts.googleapis.com/css?family=Poppins' rel='stylesheet' type='text/css'>
 	<link rel="stylesheet" href="style.css">
 </head>
 <body>
-	<ul class="twitch-list" id="twitch-list">
-	</ul>
+	<header class="main-header">
+		<div class="container">
+			<a href="http://htovey.com/twitch"></a><h1 class="logo">Twitch<span class="accent">Streamers</span></h1>
+			<div class="display-toggles cf">
+				<button id="show-all" class="all display-toggle btn-floating btn-large waves-effect waves-light">All</button>
+				<button id="show-online" class="online display-toggle btn-floating btn-large waves-effect waves-light"><img src="img/online.svg" alt="online" class="online-icon"></button>
+				<button id="show-offline" class="offline display-toggle btn-floating btn-large waves-effect waves-light"><img src="img/offline.svg" alt="offline" class="offline-icon"></button>
+			</div>
+		</div>
+	</header>
+	<div class="container">
+		<div class="animated online-list fadeInUp" id="online-list">
+			<h2 class="header header--online animated fadeInUp">Online</h2>
+			<ul class="twitch-list twitch-online animated fadeInUp" id="twitch-online"></ul>
+		</div>
+		<div class="animated offline-list fadeInUp" id="offline-list">
+			<h2 class="header header--offline animated fadeInUp">Offline</h2>
+			<ul class="twitch-list twitch-offline animated fadeInUp" id="twitch-offline"></ul>
+		</div>
+	</div>
 	<script src="index.js"></script>
+	<script src="waves.js" type="text/javascript"></script>
 </body>
 </html>
