@@ -139,7 +139,7 @@ TwitchList = {
 
 	appendData: function(user) {
 		var item = document.createElement('li');
-		item.innerHTML = "<a class='status-link' href=" + user.url + "><div class='user-container waves-light waves-effect btn'><img class='user-img' src=" + user.logo + "><h2 class='username'>" + user.display_name + "</h2><p class='status'>" + user.status + "</p></div></a>";
+		item.innerHTML = "<a class='status-link' href=" + user.url + "><div class='user-container waves-light waves-effect btn'><img class='user-img' alt='Avatar of " + user.display_name + "' src=" + user.logo + "><h2 class='username'>" + user.display_name + "</h2><p class='status'>" + user.status + "</p></div></a>";
 		item.className += "twitch-user animated fadeInUp";
 		
 
